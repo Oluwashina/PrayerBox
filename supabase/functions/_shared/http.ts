@@ -1,3 +1,5 @@
+import { ServerError } from 'npm:livekit-server-sdk@2.19.1'
+
 const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '*')
   .split(',')
   .map((o) => o.trim())
@@ -47,9 +49,38 @@ export function serve(handler: (req: Request, body: Record<string, unknown>) => 
     } catch (error) {
       if (error instanceof HttpError) return json(req, error.status, { code: error.code, message: error.message })
       console.error(error)
-      return json(req, 500, { code: 'server-error', message: 'Something went wrong on the server. Please try again.' })
+      return json(req, 500, describeUnexpected(error))
     }
   })
+}
+
+/**
+ * Turns configuration and upstream failures into actionable messages. These describe setup
+ * problems only and never include secret values.
+ */
+function describeUnexpected(error: unknown): { code: string; message: string } {
+  const e = error as { code?: string; message?: string; details?: unknown; hint?: unknown }
+  const message = e?.message ?? String(error)
+
+  if (error instanceof ServerError) {
+    if (error.status === 401 || error.status === 403 || /unauthori[sz]ed|invalid.*(key|token|signature)/i.test(message)) {
+      return {
+        code: 'livekit-auth',
+        message: 'LiveKit rejected the server credentials. Check the LIVEKIT_API_KEY and LIVEKIT_API_SECRET secrets belong to the same LiveKit project as LIVEKIT_URL.',
+      }
+    }
+    return { code: 'livekit-error', message: `LiveKit returned an error: ${message}` }
+  }
+  if (error instanceof TypeError && /fetch|dns|connect|lookup|resolve|sending request/i.test(message)) {
+    return {
+      code: 'livekit-unreachable',
+      message: 'The server could not reach LiveKit. Check the LIVEKIT_URL secret (wss://your-project.livekit.cloud).',
+    }
+  }
+  if (e && typeof e.code === 'string' && ('details' in e || 'hint' in e)) {
+    return { code: 'database-error', message: `Database error: ${message}` }
+  }
+  return { code: 'server-error', message: 'Something went wrong on the server. Please try again.' }
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

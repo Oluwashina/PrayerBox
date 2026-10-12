@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+
+  /* Brand primary (from the brand sheet) */
+  --color-brand-50: #fffaeb;
+  --color-brand-100: #fff3bf;
+  --color-brand-200: #ffe58a;
+  --color-brand-300: #ffd65c;
+  --color-brand-400: #ffc533;
+  --color-brand-500: #f5b300;
+  --color-brand-600: #c98f00;
+
+  /* Deep purple accents */
+  --color-plum-50: #f7f3fc;
+  --color-plum-100: #eee6f8;
+  --color-plum-200: #dccdf0;
+  --color-plum-300: #bea4e2;
+  --color-plum-400: #9877cc;
+  --color-plum-500: #7552b0;
+  --color-plum-600: #5c3b95;
+  --color-plum-700: #4a2d7b;
+  --color-plum-800: #382160;
+  --color-plum-900: #281746;
+  --color-plum-950: #190d2e;
+
+  /* Warm neutrals */
+  --color-cream-50: #fbf8f2;
+  --color-cream-100: #f5efe3;
+  --color-cream-200: #ebe2d0;
+  --color-cream-300: #d6cab2;
+  --color-ink-900: #17131c;
+  --color-ink-700: #3a3441;
+  --color-ink-500: #6b6473;
+  --color-ink-400: #8d8694;
+
+  /* Status */
+  --color-live: #e82d88;
+  --color-live-soft: #fde7f2;
+  --color-ok: #2f8f5b;
+  --color-ok-soft: #e4f4ea;
+  --color-warn: #b7791f;
+  --color-warn-soft: #fdf1dc;
+  --color-danger: #c2413b;
+  --color-danger-soft: #fbe6e4;
+
+  --shadow-soft: 0 1px 2px rgb(40 23 70 / 0.04), 0 8px 24px -12px rgb(40 23 70 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(40 23 70 / 0.05), 0 18px 40px -18px rgb(40 23 70 / 0.25);
+
+  --animate-breathe: breathe 4s ease-in-out infinite;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50% { transform: scale(1.06); opacity: 0.85; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(232 45 136 / 0.45); }
+    50% { box-shadow: 0 0 0 6px rgb(232 45 136 / 0); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-cream-50 font-sans text-ink-900 antialiased;
+    font-size: 1.0625rem;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-plum-500;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

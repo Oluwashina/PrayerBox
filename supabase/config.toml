@@ -1,0 +1,12 @@
+project_id = "prayerbox"
+
+# Guests call room-token without an account, so the gateway JWT check is off.
+# Every function verifies the caller itself (host functions require a host session).
+[functions.room-token]
+verify_jwt = false
+
+[functions.room-moderate]
+verify_jwt = false
+
+[functions.session-control]
+verify_jwt = false

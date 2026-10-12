@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "types": [],
+    "paths": {
+      "npm:livekit-server-sdk@2.19.1": ["./node_modules/livekit-server-sdk"],
+      "npm:@supabase/supabase-js@2": ["./node_modules/@supabase/supabase-js"]
+    }
+  },
+  "include": ["supabase/functions"]
+}

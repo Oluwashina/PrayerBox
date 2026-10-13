@@ -47,13 +47,16 @@ export function LiveSessionCard({ session, glass = false, className }: { session
 
         <Waveform tone="dark" className="mt-8 h-9 justify-start" bars={40} />
 
-        <div className="mt-8 flex items-end justify-between gap-4 border-t border-white/10 pt-5">
+        <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="text-[0.8125rem] text-white/55">
-            <p>Led by <span className="text-white">{session.hostName}</span></p>
+            <p>
+              Led by <span className="text-white">{session.hostName}</span>
+            </p>
             <p className="mt-0.5">{modeLabel(session.mode)}</p>
           </div>
-          <span className="inline-flex h-12 items-center gap-2 rounded-full bg-brand-400 pr-4 pl-5 text-sm font-medium text-ink-900 transition-colors group-hover:bg-brand-300">
-            Join the prayer <ArrowUpRight className="size-4" aria-hidden />
+          <span className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-brand-400 px-5 text-sm font-medium text-ink-900 transition-colors group-hover:bg-brand-300 sm:h-12 sm:w-auto">
+            <span className="whitespace-nowrap">Join the prayer</span>
+            <ArrowUpRight className="size-4 shrink-0" aria-hidden />
           </span>
         </div>
       </div>

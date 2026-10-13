@@ -2,7 +2,16 @@ import { Link } from 'react-router'
 import { appConfig } from '@/config'
 import { cn } from '@/lib/cn'
 
-export function Logo({ tone = 'light', compact = false, className }: { tone?: 'light' | 'dark'; compact?: boolean; className?: string }) {
+export function Logo({
+  tone = 'light',
+  compact = false,
+  className,
+}: {
+  tone?: 'light' | 'dark'
+  /** Icon only — saves space beside header actions on small screens. */
+  compact?: boolean
+  className?: string
+}) {
   const dark = tone === 'dark'
   return (
     <Link

@@ -42,10 +42,12 @@ export function AppLayout() {
     <div className="flex min-h-dvh flex-col">
       <OfflineBanner />
       <header className="sticky top-0 z-30 border-b border-ink-900/[0.08] bg-cream-50/80 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:h-[4.5rem] sm:px-8">
-          <Logo />
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-5 sm:h-[4.5rem] sm:gap-4 sm:px-8">
+          <div className="min-w-0 flex-1 md:flex-none">
+            <Logo />
+          </div>
 
-          <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
+          <nav className="hidden flex-1 items-center justify-end gap-8 md:flex" aria-label="Main">
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.end} className={desktopLink}>
                 {l.label}
@@ -63,8 +65,8 @@ export function AppLayout() {
             {live && <LivePill id={live.id} />}
           </nav>
 
-          <div className="flex items-center gap-2 md:hidden">
-            {live && <LivePill id={live.id} />}
+          <div className="flex h-11 shrink-0 items-center gap-2 md:hidden">
+            {live && <LivePill id={live.id} compact />}
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -154,13 +156,17 @@ export function AppLayout() {
   )
 }
 
-function LivePill({ id }: { id: string }) {
+function LivePill({ id, compact = false }: { id: string; compact?: boolean }) {
   return (
     <Link
       to={`/s/${id}`}
-      className="inline-flex h-9 items-center gap-2 rounded-full bg-ink-900 pr-4 pl-3 text-[0.8125rem] font-medium text-white transition-colors hover:bg-plum-900"
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-ink-900 font-medium leading-none text-white transition-colors hover:bg-plum-900',
+        compact ? 'h-11 px-3.5 text-[0.8125rem]' : 'h-9 pr-4 pl-3 text-[0.8125rem]',
+      )}
     >
-      <LiveDot className="size-1.5" /> Live now
+      <LiveDot className="size-1.5 shrink-0" />
+      <span className="whitespace-nowrap">{compact ? 'Live' : 'Live now'}</span>
     </Link>
   )
 }

@@ -62,11 +62,11 @@ export function AppLayout() {
                 Sign out
               </button>
             )}
-            {live && <LivePill id={live.id} />}
+            {live && <LivePill />}
           </nav>
 
           <div className="flex h-11 shrink-0 items-center gap-2 md:hidden">
-            {live && <LivePill id={live.id} compact />}
+            {live && <LivePill compact />}
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -130,7 +130,7 @@ export function AppLayout() {
           <div className="relative px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
             {live ? (
               <Link
-                to={`/s/${live.id}`}
+                to="/live"
                 className="flex h-14 items-center justify-between rounded-full bg-brand-400 px-6 font-medium text-ink-900"
               >
                 <span className="flex items-center gap-3">
@@ -156,10 +156,10 @@ export function AppLayout() {
   )
 }
 
-function LivePill({ id, compact = false }: { id: string; compact?: boolean }) {
+function LivePill({ compact = false }: { compact?: boolean }) {
   return (
     <Link
-      to={`/s/${id}`}
+      to="/live"
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-ink-900 font-medium leading-none text-white transition-colors hover:bg-plum-900',
         compact ? 'h-11 px-3.5 text-[0.8125rem]' : 'h-9 pr-4 pl-3 text-[0.8125rem]',

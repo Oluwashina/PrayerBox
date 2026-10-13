@@ -1,4 +1,4 @@
-# PrayerBox — The New Church Ibadan
+# PrayerBox · The New Church Ibadan
 
 A mobile-first web app for the prayer team to host and join live, audio-only prayer sessions. Listeners open a link, enter their name and join. They don't need to install an app or create an account.
 

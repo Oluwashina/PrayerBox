@@ -13,7 +13,7 @@ export function LiveSessionCard({ session, glass = false, className }: { session
   const now = useNow()
   return (
     <Link
-      to={`/s/${session.id}`}
+      to="/live"
       aria-labelledby={`live-${session.id}`}
       className={cn(
         'group relative block overflow-hidden rounded-[1.5rem] p-6 text-white ring-1 transition-transform duration-300 hover:-translate-y-0.5 sm:p-8',

@@ -8,7 +8,7 @@ export function Logo({
   className,
 }: {
   tone?: 'light' | 'dark'
-  /** Icon only — saves space beside header actions on small screens. */
+  /** Icon only; saves space beside header actions on small screens. */
   compact?: boolean
   className?: string
 }) {

@@ -16,8 +16,20 @@ export function groupSessions(sessions: PrayerSession[]) {
   }
 }
 
+const origin = () => (typeof window !== 'undefined' ? window.location.origin : '')
+
+/** Stable public link for “we’re live now” shares. */
+export function livePrayerUrl() {
+  return `${origin()}/live`
+}
+
 export function sessionShareUrl(sessionId: string) {
-  return `${window.location.origin}/s/${sessionId}`
+  return `${origin()}/s/${sessionId}`
+}
+
+/** Link hosts should share: /live when live, otherwise the session join page. */
+export function publicShareUrl(session: PrayerSession) {
+  return session.status === 'live' ? livePrayerUrl() : sessionShareUrl(session.id)
 }
 
 export function modeLabel(mode: PrayerSession['mode']) {

@@ -6,6 +6,7 @@ import { ToastProvider } from './components/ui/Toast'
 import { HomePage } from './pages/HomePage'
 import { JoinPage } from './pages/JoinPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { LivePage } from './pages/LivePage'
 import { SessionsPage } from './pages/SessionsPage'
 import { HostDashboardPage } from './pages/host/HostDashboardPage'
 import { HostSessionPage } from './pages/host/HostSessionPage'
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: 'live', element: <LivePage /> },
           { path: 'sessions', element: <SessionsPage /> },
           { path: 's/:sessionId', element: <JoinPage /> },
           { path: 'host/sign-in', element: <HostSignInPage /> },

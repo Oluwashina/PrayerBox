@@ -192,7 +192,7 @@ export function JoinPage() {
                           Opens when the host begins
                         </Button>
                         <p className="mt-3 text-center text-[0.8125rem] text-ink-500">
-                          Keep this page open — it updates the moment prayer starts.
+                          Stay on this page. It will update as soon as the host starts the session.
                         </p>
                       </div>
                     )}

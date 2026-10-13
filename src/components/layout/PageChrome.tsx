@@ -57,7 +57,7 @@ export function SectionHeader({
       {(index || eyebrow) && (
         <p className="eyebrow text-ink-500">
           {index && <span className="text-brand-600">{index}</span>}
-          {index && eyebrow && <span className="mx-2 text-ink-400">—</span>}
+          {index && eyebrow && <span className="mx-2 text-ink-400">·</span>}
           {eyebrow}
         </p>
       )}

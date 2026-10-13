@@ -20,6 +20,7 @@ function byMonth(sessions: PrayerSession[]) {
 export function SessionsPage() {
   const { sessions, loading, error, reload } = useSessions()
   const { live, upcoming, past } = groupSessions(sessions)
+  const recentPast = past.slice(0, 3)
 
   return (
     <div>
@@ -30,7 +31,7 @@ export function SessionsPage() {
             Times of <em className="text-plum-600">prayer</em>
           </>
         }
-        description="Join live, or plan ahead for the next gathering. Every session is open to all — just bring your name."
+        description="Join live or see what is coming up. Everyone is welcome. We only ask for your name when you enter."
       />
 
       {error ? (
@@ -69,11 +70,11 @@ export function SessionsPage() {
             </div>
           </section>
 
-          {!loading && past.length > 0 && (
+          {!loading && recentPast.length > 0 && (
             <section aria-labelledby="previous-sessions">
               <SectionHeader index="02" eyebrow="Archive" id="previous-sessions" title="Recent sessions" />
               <div className="mt-6">
-                {past.map((s) => (
+                {recentPast.map((s) => (
                   <SessionCard key={s.id} session={s} />
                 ))}
               </div>

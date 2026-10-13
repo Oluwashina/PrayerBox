@@ -42,7 +42,7 @@ export function HomePage() {
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               {current ? (
-                <ButtonLink to={`/s/${current.id}`} variant="brand" size="lg">
+                <ButtonLink to="/live" variant="brand" size="lg">
                   Join live prayer <ArrowUpRight className="size-4" aria-hidden />
                 </ButtonLink>
               ) : (

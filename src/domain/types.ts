@@ -42,6 +42,17 @@ export interface Participant {
   joinedAt: string
 }
 
+/** Someone who entered the prayer room, kept after the session ends. */
+export interface Attendee {
+  id: string
+  displayName: string
+  isHost: boolean
+  firstJoinedAt: string
+  lastJoinedAt: string
+  /** Times they entered (rejoins after a dropped connection count again). */
+  visits: number
+}
+
 export interface HostUser {
   id: string
   name: string

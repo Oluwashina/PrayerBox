@@ -1,5 +1,5 @@
 import { AccessToken, TrackSource } from 'npm:livekit-server-sdk@2.19.1'
-import { loadSession } from '../_shared/clients.ts'
+import { adminClient, loadSession } from '../_shared/clients.ts'
 import { livekitEnv } from '../_shared/env.ts'
 import { HttpError, requireSessionId, serve } from '../_shared/http.ts'
 import { getHost, hasSpeakerGrant, isBanned, issueGuestCredential, verifyGuestCredential } from '../_shared/identity.ts'
@@ -57,6 +57,15 @@ serve(async (req, body) => {
     canPublishData: false,
     canUpdateOwnMetadata: false,
   })
+
+  // Attendance is for the history view only; never block someone from praying over it.
+  const { error: attendanceError } = await adminClient().rpc('record_attendance', {
+    p_session_id: sessionId,
+    p_identity: identity,
+    p_display_name: name,
+    p_is_host: Boolean(host),
+  })
+  if (attendanceError) console.error('record_attendance failed', attendanceError)
 
   return {
     token: await at.toJwt(),

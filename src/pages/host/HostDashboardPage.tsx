@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { CalendarPlus, CircleStop, Pencil, Play, Plus, Share2, XCircle } from 'lucide-react'
 import type { PrayerSession } from '@/domain/types'
 import { groupSessions, modeLabel } from '@/domain/session'
+import { useAttendanceCounts } from '@/hooks/useAttendance'
 import { useAuth } from '@/hooks/useAuth'
 import { useNow } from '@/hooks/useNow'
 import { useRoomParticipants } from '@/hooks/useRoomParticipants'
@@ -45,6 +46,7 @@ export function HostDashboardPage() {
   const { sessions, loading, error, reload } = useSessions()
   const { live, upcoming, past } = groupSessions(sessions)
   const [tab, setTab] = useState<Tab>('upcoming')
+  const attendanceCounts = useAttendanceCounts(tab === 'past')
   const [action, setAction] = useState<PendingAction>(null)
   const close = () => setAction(null)
   const firstName = host?.name.split(' ')[0] ?? ''
@@ -171,7 +173,14 @@ export function HostDashboardPage() {
               ) : past.length === 0 ? (
                 <EmptyState className="mt-8" title="No past sessions yet" />
               ) : (
-                past.map((s) => <SessionCard key={s.id} session={s} to={`/host/sessions/${s.id}`} />)
+                past.map((s) => (
+                  <SessionCard
+                    key={s.id}
+                    session={s}
+                    to={`/host/sessions/${s.id}`}
+                    attendees={attendanceCounts[s.id]}
+                  />
+                ))
               )}
             </div>
           </section>

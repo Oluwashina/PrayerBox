@@ -24,11 +24,14 @@ export function SessionCard({
   to,
   className,
   actions,
+  attendees,
 }: {
   session: PrayerSession
   to?: string
   className?: string
   actions?: ReactNode
+  /** Host views only. */
+  attendees?: number
 }) {
   const muted = session.status === 'ended' || session.status === 'cancelled'
   const body = (
@@ -42,6 +45,11 @@ export function SessionCard({
           <span aria-hidden className="hidden text-ink-400 sm:inline">·</span>
           <span className="hidden sm:inline">{modeLabel(session.mode)}</span>
           {session.status !== 'scheduled' && <StatusBadge status={session.status} />}
+          {attendees !== undefined && (
+            <span className="font-medium text-ink-700 tabular-nums">
+              {attendees} {attendees === 1 ? 'person' : 'people'} joined
+            </span>
+          )}
         </div>
         <h3
           className={cn(

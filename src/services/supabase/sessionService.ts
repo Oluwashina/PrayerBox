@@ -20,6 +20,15 @@ interface SessionRow {
   updated_at: string
 }
 
+interface AttendanceRow {
+  identity: string
+  display_name: string
+  is_host: boolean
+  first_joined_at: string
+  last_joined_at: string
+  join_count: number
+}
+
 const COLUMNS =
   'id, title, description, prayer_focus, host_name, scheduled_start, duration_minutes, mode, status, started_at, ended_at, created_at, updated_at'
 
@@ -117,6 +126,29 @@ export const supabaseSessionService: SessionService = {
     if (error) throw friendlyDbError(error)
     emit()
     return fromRow(data as SessionRow)
+  },
+
+  async attendance(id) {
+    const { data, error } = await supabase()
+      .from('session_attendance')
+      .select('identity, display_name, is_host, first_joined_at, last_joined_at, join_count')
+      .eq('session_id', id)
+      .order('first_joined_at', { ascending: true })
+    if (error) throw friendlyDbError(error)
+    return (data as AttendanceRow[]).map((row) => ({
+      id: row.identity,
+      displayName: row.display_name,
+      isHost: row.is_host,
+      firstJoinedAt: row.first_joined_at,
+      lastJoinedAt: row.last_joined_at,
+      visits: row.join_count,
+    }))
+  },
+
+  async attendanceCounts() {
+    const { data, error } = await supabase().rpc('session_attendance_counts')
+    if (error) throw friendlyDbError(error)
+    return Object.fromEntries((data as { session_id: string; attendees: number }[]).map((r) => [r.session_id, r.attendees]))
   },
 
   setMode: (id, mode) => control(id, 'set-mode', { mode }),

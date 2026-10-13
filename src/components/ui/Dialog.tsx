@@ -32,18 +32,18 @@ export function Dialog({ open, onClose, title, description, children, footer, si
       onClick={(e) => e.target === ref.current && onClose()}
       aria-labelledby="dialog-title"
       className={cn(
-        'm-0 mt-auto w-full max-w-none rounded-t-3xl p-0 shadow-lift backdrop:bg-ink-900/40 backdrop:backdrop-blur-[2px] sm:m-auto sm:rounded-3xl',
+        'm-0 mt-auto w-full max-w-none rounded-t-[1.75rem] p-0 shadow-lift backdrop:bg-plum-950/55 backdrop:backdrop-blur-sm sm:m-auto sm:rounded-[1.5rem]',
         size === 'sm' && 'sm:max-w-md',
         size === 'md' && 'sm:max-w-lg',
         size === 'lg' && 'sm:max-w-2xl',
-        tone === 'light' ? 'bg-white text-ink-900' : 'bg-plum-900 text-white',
+        tone === 'light' ? 'bg-cream-50 text-ink-900' : 'bg-plum-900 text-white',
       )}
     >
       {open && (
         <div className="flex max-h-[88dvh] flex-col">
-          <div className="flex items-start gap-4 px-6 pt-6 pb-2">
+          <div className="flex items-start gap-4 px-6 pt-7 pb-2 sm:px-8">
             <div className="flex-1">
-              <h2 id="dialog-title" className="text-2xl font-medium">
+              <h2 id="dialog-title" className="text-[1.75rem] leading-tight">
                 {title}
               </h2>
               {description && (
@@ -54,12 +54,12 @@ export function Dialog({ open, onClose, title, description, children, footer, si
               <X className="size-5" />
             </IconButton>
           </div>
-          <div className="overflow-y-auto px-6 py-4">{children}</div>
+          <div className="overflow-y-auto px-6 py-4 sm:px-8">{children}</div>
           {footer && (
             <div
               className={cn(
-                'flex flex-col-reverse gap-3 border-t px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end',
-                tone === 'light' ? 'border-cream-100' : 'border-white/10',
+                'flex flex-col-reverse gap-3 border-t px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:px-8',
+                tone === 'light' ? 'border-ink-900/10' : 'border-white/10',
               )}
             >
               {footer}

@@ -1,19 +1,21 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
-import { CalendarDays, CalendarPlus, History, Pencil, Play, Plus, Share2, CircleStop, UsersRound, XCircle } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { CalendarPlus, CircleStop, Pencil, Play, Plus, Share2, XCircle } from 'lucide-react'
 import type { PrayerSession } from '@/domain/types'
 import { groupSessions, modeLabel } from '@/domain/session'
 import { useAuth } from '@/hooks/useAuth'
+import { useNow } from '@/hooks/useNow'
 import { useRoomParticipants } from '@/hooks/useRoomParticipants'
 import { useSessions } from '@/hooks/useSessions'
 import { sessionService } from '@/services'
-import { formatDateTime, formatRelativeStart } from '@/lib/format'
+import { formatElapsed } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { SessionEditorDialog } from '@/components/host/SessionEditorDialog'
+import { PageIntro } from '@/components/layout/PageChrome'
+import { SessionCard } from '@/components/SessionCard'
 import { ShareSession } from '@/components/ShareSession'
-import { Badge, LiveDot, StatusBadge } from '@/components/ui/Badge'
+import { LiveDot } from '@/components/ui/Badge'
 import { Button, ButtonLink } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Dialog } from '@/components/ui/Dialog'
 import { EmptyState, ErrorState, SessionCardSkeleton } from '@/components/ui/States'
@@ -28,6 +30,11 @@ type PendingAction =
   | { kind: 'start'; session: PrayerSession }
   | null
 
+function greeting() {
+  const h = new Date().getHours()
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+}
+
 export function HostDashboardPage() {
   const { host } = useAuth()
   const navigate = useNavigate()
@@ -40,60 +47,82 @@ export function HostDashboardPage() {
   const [tab, setTab] = useState<Tab>('upcoming')
   const [action, setAction] = useState<PendingAction>(null)
   const close = () => setAction(null)
+  const firstName = host?.name.split(' ')[0] ?? ''
 
   return (
-    <div className="pt-4 sm:pt-8">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-plum-600">Welcome, {host?.name}</p>
-          <h1 className="mt-1 text-4xl font-medium sm:text-5xl">Host dashboard</h1>
-        </div>
-        <Button size="lg" icon={<Plus className="size-5" />} onClick={() => setCreating(true)}>
-          New prayer session
-        </Button>
-      </div>
+    <div>
+      <PageIntro
+        eyebrow="Host console"
+        title={
+          <>
+            {greeting()}, <em className="text-plum-600">{firstName}.</em>
+          </>
+        }
+        description="Schedule times of prayer, go live when you are ready, and share the link with the church."
+        action={
+          <Button size="lg" icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>
+            New session
+          </Button>
+        }
+      />
+
+      <dl className="grid grid-cols-3 border-y border-ink-900/10">
+        {[
+          { label: 'Live now', value: live.length, accent: live.length > 0 },
+          { label: 'Upcoming', value: upcoming.length },
+          { label: 'Completed', value: past.filter((s) => s.status === 'ended').length },
+        ].map((stat, i) => (
+          <div key={stat.label} className={cn('py-6 sm:py-8', i > 0 && 'border-l border-ink-900/10 pl-5 sm:pl-8')}>
+            <dt className="eyebrow text-ink-500">{stat.label}</dt>
+            <dd className={cn('mt-3 font-serif text-[2.75rem] leading-none tabular-nums sm:text-6xl', stat.accent ? 'text-live' : 'text-ink-900')}>
+              {loading ? '–' : stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
 
       {error ? (
-        <ErrorState className="mt-10" title="We could not load your sessions" body={error} onRetry={reload} />
+        <ErrorState className="mt-12" title="We could not load your sessions" body={error} onRetry={reload} />
       ) : (
         <>
           {live.length > 0 && (
-            <section className="mt-10" aria-labelledby="live-now">
-              <h2 id="live-now" className="sr-only">
-                Live now
-              </h2>
-              <div className="flex flex-col gap-4">
-                {live.map((s) => (
-                  <LiveHostCard key={s.id} session={s} onShare={() => setAction({ kind: 'share', session: s })} onEnd={() => setAction({ kind: 'end', session: s })} />
-                ))}
-              </div>
+            <section className="mt-12 flex flex-col gap-4" aria-label="Live now">
+              {live.map((s) => (
+                <LiveHostPanel
+                  key={s.id}
+                  session={s}
+                  onShare={() => setAction({ kind: 'share', session: s })}
+                  onEnd={() => setAction({ kind: 'end', session: s })}
+                />
+              ))}
             </section>
           )}
 
-          <section className="mt-10" aria-label="Sessions">
-            <div role="tablist" aria-label="Session lists" className="inline-flex rounded-full bg-cream-100 p-1">
+          <section className="mt-14" aria-label="Sessions">
+            <div role="tablist" aria-label="Session lists" className="flex gap-8 border-b border-ink-900/10">
               {(
                 [
-                  ['upcoming', `Upcoming (${upcoming.length})`, CalendarDays],
-                  ['past', `Past (${past.length})`, History],
+                  ['upcoming', 'Upcoming', upcoming.length],
+                  ['past', 'Past', past.length],
                 ] as const
-              ).map(([key, label, Icon]) => (
+              ).map(([key, label, count]) => (
                 <button
                   key={key}
                   role="tab"
                   aria-selected={tab === key}
                   onClick={() => setTab(key)}
                   className={cn(
-                    'flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors',
-                    tab === key ? 'bg-white text-plum-800 shadow-soft' : 'text-ink-500 hover:text-ink-900',
+                    '-mb-px flex items-baseline gap-2 border-b py-4 font-serif text-[1.6rem] leading-none transition-colors',
+                    tab === key ? 'border-ink-900 text-ink-900' : 'border-transparent text-ink-400 hover:text-ink-700',
                   )}
                 >
-                  <Icon className="size-4" aria-hidden /> {label}
+                  {label}
+                  <span className="font-sans text-xs tabular-nums text-ink-400">{count}</span>
                 </button>
               ))}
             </div>
 
-            <div className="mt-5 flex flex-col gap-3" role="tabpanel">
+            <div role="tabpanel">
               {loading ? (
                 <>
                   <SessionCardSkeleton />
@@ -102,39 +131,47 @@ export function HostDashboardPage() {
               ) : tab === 'upcoming' ? (
                 upcoming.length === 0 ? (
                   <EmptyState
-                    icon={<CalendarPlus className="size-8" />}
+                    className="mt-8"
+                    icon={<CalendarPlus />}
                     title="No upcoming sessions"
                     body="Schedule a time of prayer and share the link with your church."
                     action={<Button onClick={() => setCreating(true)}>Schedule a session</Button>}
                   />
                 ) : (
                   upcoming.map((s) => (
-                    <HostSessionRow key={s.id} session={s}>
-                      <Button size="sm" variant="brand" icon={<Play className="size-4" />} onClick={() => setAction({ kind: 'start', session: s })}>
-                        Start
-                      </Button>
-                      <Button size="sm" variant="secondary" icon={<Share2 className="size-4" />} onClick={() => setAction({ kind: 'share', session: s })}>
-                        Share
-                      </Button>
-                      <Button size="sm" variant="secondary" icon={<Pencil className="size-4" />} onClick={() => setAction({ kind: 'edit', session: s })}>
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-danger hover:bg-danger-soft"
-                        icon={<XCircle className="size-4" />}
-                        onClick={() => setAction({ kind: 'cancel', session: s })}
-                      >
-                        Cancel
-                      </Button>
-                    </HostSessionRow>
+                    <SessionCard
+                      key={s.id}
+                      session={s}
+                      to={`/host/sessions/${s.id}`}
+                      actions={
+                        <>
+                          <Button size="sm" variant="brand" icon={<Play className="size-3.5" />} onClick={() => setAction({ kind: 'start', session: s })}>
+                            Start
+                          </Button>
+                          <Button size="sm" variant="secondary" icon={<Share2 className="size-3.5" />} onClick={() => setAction({ kind: 'share', session: s })}>
+                            Share
+                          </Button>
+                          <Button size="sm" variant="secondary" icon={<Pencil className="size-3.5" />} onClick={() => setAction({ kind: 'edit', session: s })}>
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-danger hover:bg-danger-soft"
+                            icon={<XCircle className="size-3.5" />}
+                            onClick={() => setAction({ kind: 'cancel', session: s })}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      }
+                    />
                   ))
                 )
               ) : past.length === 0 ? (
-                <EmptyState icon={<History className="size-8" />} title="No past sessions yet" />
+                <EmptyState className="mt-8" title="No past sessions yet" />
               ) : (
-                past.map((s) => <HostSessionRow key={s.id} session={s} />)
+                past.map((s) => <SessionCard key={s.id} session={s} to={`/host/sessions/${s.id}`} />)
               )}
             </div>
           </section>
@@ -148,7 +185,7 @@ export function HostDashboardPage() {
         session={action?.kind === 'edit' ? action.session : undefined}
       />
 
-      <Dialog open={action?.kind === 'share'} onClose={close} title="Share this prayer session" size="sm">
+      <Dialog open={action?.kind === 'share'} onClose={close} title="Share this session" size="sm">
         {action?.kind === 'share' && <ShareSession session={action.session} layout="stack" />}
       </Dialog>
 
@@ -193,59 +230,47 @@ export function HostDashboardPage() {
   )
 }
 
-function HostSessionRow({ session, children }: { session: PrayerSession; children?: ReactNode }) {
-  return (
-    <Card className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center">
-      <Link to={`/host/sessions/${session.id}`} className="group min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-ink-500">
-          <span className="font-medium">{formatDateTime(session.scheduledStart, true)}</span>
-          {session.status === 'scheduled' ? (
-            <span>· {formatRelativeStart(session.scheduledStart)}</span>
-          ) : (
-            <StatusBadge status={session.status} />
-          )}
-          <Badge tone="neutral">{modeLabel(session.mode)}</Badge>
-        </div>
-        <h3 className="mt-1.5 text-xl font-medium group-hover:text-plum-800">{session.title}</h3>
-        <p className="mt-0.5 truncate text-sm text-ink-500">
-          {session.prayerFocus} · {session.hostName}
-        </p>
-      </Link>
-      {children && <div className="flex flex-wrap gap-2">{children}</div>}
-    </Card>
-  )
-}
-
-function LiveHostCard({ session, onShare, onEnd }: { session: PrayerSession; onShare: () => void; onEnd: () => void }) {
+function LiveHostPanel({ session, onShare, onEnd }: { session: PrayerSession; onShare: () => void; onEnd: () => void }) {
+  const now = useNow()
   const { participants, loading } = useRoomParticipants(session.id, true, 8000)
   const raised = participants.filter((p) => p.handRaised).length
   return (
-    <div className="flex flex-col gap-5 rounded-[2rem] bg-plum-900 p-6 text-white shadow-lift sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide">
-          <LiveDot /> LIVE NOW · {modeLabel(session.mode)}
-        </span>
-        <h2 className="mt-3 text-2xl font-medium sm:text-3xl">{session.title}</h2>
-        <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/70">
-          <span className="flex items-center gap-1.5">
-            <UsersRound className="size-4" aria-hidden /> {loading ? '…' : participants.length} connected
-          </span>
-          {raised > 0 && <span className="text-brand-300">{raised} asking to speak</span>}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <ButtonLink to={`/s/${session.id}/room`} variant="brand">
-          Open prayer room
-        </ButtonLink>
-        <ButtonLink to={`/host/sessions/${session.id}`} variant="onDark">
-          Manage
-        </ButtonLink>
-        <Button variant="onDark" icon={<Share2 className="size-4" />} onClick={onShare}>
-          Share
-        </Button>
-        <Button variant="onDarkGhost" icon={<CircleStop className="size-4" />} onClick={onEnd}>
-          End
-        </Button>
+    <div className="relative overflow-hidden rounded-[1.5rem] bg-plum-950 text-white">
+      <div aria-hidden className="pointer-events-none absolute -top-24 right-0 size-80 rounded-full bg-plum-600/40 blur-[90px]" />
+      <div className="relative flex flex-col gap-8 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="eyebrow inline-flex items-center gap-2.5">
+            <LiveDot /> Live · {modeLabel(session.mode)}
+            {session.startedAt && <span className="font-mono tracking-normal text-white/50">{formatElapsed(session.startedAt, now)}</span>}
+          </p>
+          <h2 className="mt-5 text-[2.25rem] leading-[1.02] sm:text-5xl">{session.title}</h2>
+          <div className="mt-6 flex gap-8">
+            <div>
+              <p className="eyebrow text-white/45">In the room</p>
+              <p className="mt-2 font-serif text-4xl leading-none tabular-nums">{loading ? '–' : participants.length}</p>
+            </div>
+            <div className="border-l border-white/10 pl-8">
+              <p className="eyebrow text-white/45">Asking to speak</p>
+              <p className={cn('mt-2 font-serif text-4xl leading-none tabular-nums', raised > 0 && 'text-brand-300')}>
+                {loading ? '–' : raised}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink to={`/s/${session.id}/room`} variant="brand">
+            Open prayer room
+          </ButtonLink>
+          <ButtonLink to={`/host/sessions/${session.id}`} variant="onDark">
+            Manage
+          </ButtonLink>
+          <Button variant="onDark" icon={<Share2 className="size-4" />} onClick={onShare}>
+            Share
+          </Button>
+          <Button variant="onDarkGhost" icon={<CircleStop className="size-4" />} onClick={onEnd}>
+            End
+          </Button>
+        </div>
       </div>
     </div>
   )

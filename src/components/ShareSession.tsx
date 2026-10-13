@@ -66,16 +66,16 @@ export function ShareSession({
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1f8f4e] px-5 text-[0.95rem] font-semibold text-white hover:bg-[#1a7a43]"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#1d7f47] px-5 text-sm font-medium text-white transition-colors hover:bg-[#186b3c]"
       >
-        <MessageCircle className="size-5" aria-hidden />
+        <MessageCircle className="size-4" aria-hidden />
         Share on WhatsApp
       </a>
-      <Button variant={variant} icon={<Copy className="size-5" aria-hidden />} onClick={copy}>
+      <Button variant={variant} icon={<Copy className="size-4" aria-hidden />} onClick={copy}>
         Copy link
       </Button>
       {canNativeShare && (
-        <Button variant={variant} icon={<Share2 className="size-5" aria-hidden />} onClick={nativeShare}>
+        <Button variant={variant} icon={<Share2 className="size-4" aria-hidden />} onClick={nativeShare}>
           More options
         </Button>
       )}

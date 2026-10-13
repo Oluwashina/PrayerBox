@@ -1,49 +1,74 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ChevronRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import type { PrayerSession } from '@/domain/types'
-import { formatDay, formatTime } from '@/lib/format'
+import { modeLabel } from '@/domain/session'
+import { formatDuration, formatTime } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { StatusBadge } from './ui/Badge'
-import { PrayerFocus } from './SessionMeta'
 
-/** Compact row used for upcoming and past session lists. */
-export function SessionCard({ session, to, className }: { session: PrayerSession; to?: string; className?: string }) {
-  const date = new Date(session.scheduledStart)
-  const muted = session.status === 'ended' || session.status === 'cancelled'
+export function DateMark({ iso, muted = false, className }: { iso: string; muted?: boolean; className?: string }) {
+  const date = new Date(iso)
   return (
-    <Link
-      to={to ?? `/s/${session.id}`}
-      className={cn(
-        'group flex items-center gap-4 rounded-3xl border border-cream-200/70 bg-white p-4 shadow-soft transition-colors hover:border-plum-200 sm:p-5',
-        className,
-      )}
-    >
-      <div
-        className={cn(
-          'flex w-16 shrink-0 flex-col items-center rounded-2xl py-2.5',
-          muted ? 'bg-cream-100 text-ink-500' : 'bg-plum-50 text-plum-800',
-        )}
-      >
-        <span className="text-[0.7rem] font-semibold tracking-widest uppercase">
-          {date.toLocaleDateString(undefined, { month: 'short' })}
-        </span>
-        <span className="font-serif text-2xl leading-none font-medium">{date.getDate()}</span>
-      </div>
+    <div className={cn('flex w-12 shrink-0 flex-col items-start sm:w-16', muted ? 'text-ink-400' : 'text-ink-900', className)}>
+      <span className="eyebrow text-[0.6rem] text-brand-600">{date.toLocaleDateString(undefined, { weekday: 'short' })}</span>
+      <span className="mt-1 font-serif text-[2.6rem] leading-none sm:text-5xl">{date.getDate()}</span>
+      <span className="eyebrow mt-1 text-[0.6rem] text-ink-500">{date.toLocaleDateString(undefined, { month: 'short' })}</span>
+    </div>
+  )
+}
+
+/** Editorial schedule row used in session lists. */
+export function SessionCard({
+  session,
+  to,
+  className,
+  actions,
+}: {
+  session: PrayerSession
+  to?: string
+  className?: string
+  actions?: ReactNode
+}) {
+  const muted = session.status === 'ended' || session.status === 'cancelled'
+  const body = (
+    <>
+      <DateMark iso={session.scheduledStart} muted={muted} />
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-ink-500">
-            {formatDay(session.scheduledStart, true)} · {formatTime(session.scheduledStart)}
-          </span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.8125rem] text-ink-500">
+          <span className="tabular-nums">{formatTime(session.scheduledStart)}</span>
+          <span aria-hidden className="text-ink-400">·</span>
+          <span>{formatDuration(session.durationMinutes)}</span>
+          <span aria-hidden className="hidden text-ink-400 sm:inline">·</span>
+          <span className="hidden sm:inline">{modeLabel(session.mode)}</span>
           {session.status !== 'scheduled' && <StatusBadge status={session.status} />}
         </div>
-        <h3 className={cn('mt-1 truncate text-lg font-medium', muted ? 'text-ink-700' : 'text-ink-900')}>
+        <h3
+          className={cn(
+            'mt-2 text-[1.6rem] leading-[1.1] transition-colors sm:text-[2rem]',
+            muted ? 'text-ink-500' : 'text-ink-900 group-hover:text-plum-700',
+          )}
+        >
           {session.title}
         </h3>
-        <div className="mt-0.5 line-clamp-1">
-          <PrayerFocus focus={session.prayerFocus} />
-        </div>
+        <p className="mt-1.5 line-clamp-1 text-[0.9375rem] text-ink-500">
+          For {session.prayerFocus.charAt(0).toLowerCase() + session.prayerFocus.slice(1)} · {session.hostName}
+        </p>
       </div>
-      <ChevronRight className="size-5 shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5" aria-hidden />
-    </Link>
+    </>
+  )
+
+  return (
+    <div className={cn('group border-b border-ink-900/10', className)}>
+      <div className="flex flex-col gap-4 py-7 sm:flex-row sm:items-center sm:gap-8">
+        <Link to={to ?? `/s/${session.id}`} className="flex min-w-0 flex-1 items-start gap-5 sm:gap-8">
+          {body}
+          <span className="mt-2 hidden size-11 shrink-0 items-center justify-center self-center rounded-full border border-ink-900/12 text-ink-900 transition-colors group-hover:border-ink-900 group-hover:bg-ink-900 group-hover:text-white sm:flex">
+            <ArrowUpRight className="size-[1.1rem]" aria-hidden />
+          </span>
+        </Link>
+        {actions && <div className="flex flex-wrap gap-2 pl-[4.25rem] sm:pl-0">{actions}</div>}
+      </div>
+    </div>
   )
 }

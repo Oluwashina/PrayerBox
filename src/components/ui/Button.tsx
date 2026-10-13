@@ -7,22 +7,22 @@ type Variant = 'primary' | 'brand' | 'secondary' | 'ghost' | 'danger' | 'onDark'
 type Size = 'sm' | 'md' | 'lg'
 
 const base =
-  'inline-flex select-none items-center justify-center gap-2 rounded-full font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50'
+  'inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium tracking-[-0.005em] transition-[background-color,border-color,color,box-shadow] duration-200 disabled:cursor-not-allowed disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-plum-800 text-white shadow-soft hover:bg-plum-700 active:bg-plum-900',
-  brand: 'bg-brand-400 text-ink-900 shadow-soft hover:bg-brand-300 active:bg-brand-500',
-  secondary: 'border border-cream-200 bg-white text-ink-900 hover:border-plum-200 hover:bg-plum-50',
-  ghost: 'text-plum-800 hover:bg-plum-50',
+  primary: 'bg-ink-900 text-white hover:bg-plum-900 active:bg-plum-950',
+  brand: 'bg-brand-400 text-ink-900 hover:bg-brand-300 active:bg-brand-500',
+  secondary: 'border border-ink-900/15 bg-white/60 text-ink-900 hover:border-ink-900/35 hover:bg-white',
+  ghost: 'text-ink-900 hover:bg-ink-900/[0.05]',
   danger: 'bg-danger text-white hover:bg-danger/90',
-  onDark: 'bg-white/10 text-white ring-1 ring-white/15 hover:bg-white/15',
-  onDarkGhost: 'text-white/80 hover:bg-white/10 hover:text-white',
+  onDark: 'border border-white/20 text-white hover:border-white/40 hover:bg-white/[0.06]',
+  onDarkGhost: 'text-white/75 hover:bg-white/[0.08] hover:text-white',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-10 px-4 text-sm',
-  md: 'h-12 px-5 text-[0.95rem]',
-  lg: 'h-14 px-7 text-base',
+  sm: 'h-9 px-4 text-[0.8125rem]',
+  md: 'h-11 px-5 text-sm',
+  lg: 'h-13 px-7 text-[0.9375rem]',
 }
 
 interface CommonProps {
@@ -81,7 +81,7 @@ export function IconButton({ label, tone = 'light', className, children, type = 
       title={label}
       className={cn(
         'inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40',
-        tone === 'light' ? 'text-ink-700 hover:bg-plum-50 hover:text-plum-800' : 'text-white/80 hover:bg-white/10 hover:text-white',
+        tone === 'light' ? 'text-ink-700 hover:bg-ink-900/[0.05] hover:text-ink-900' : 'text-white/80 hover:bg-white/10 hover:text-white',
         className,
       )}
       {...rest}

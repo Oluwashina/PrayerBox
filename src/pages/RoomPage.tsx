@@ -220,12 +220,13 @@ export function RoomPage() {
   return (
     <RoomShell>
       {/* Top bar */}
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-2 sm:px-8">
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
+      <header className="sticky top-0 z-10 border-b border-white/[0.06] bg-plum-950/75 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
             <img src={appConfig.logoSrc} alt="" className="size-7" />
           </span>
-          <span className="hidden text-sm text-white/70 sm:block">{appConfig.churchName}</span>
+          <span className="truncate text-sm font-medium text-white/75">{appConfig.churchName}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold">
@@ -242,6 +243,7 @@ export function RoomPage() {
             <UsersRound className="size-4" aria-hidden />
             {connected ? participants.length : '–'}
           </button>
+        </div>
         </div>
       </header>
 
@@ -263,11 +265,19 @@ export function RoomPage() {
             <div
               aria-hidden
               className={cn(
-                'absolute inset-0 rounded-full bg-gradient-to-b from-plum-600/40 to-plum-800/10 ring-1 ring-white/10',
+                'absolute -inset-3 rounded-full bg-brand-400/10 blur-md transition-opacity',
+                (micOn || snapshot.receivingAudio) && 'opacity-100',
+                !(micOn || snapshot.receivingAudio) && 'opacity-40',
+              )}
+            />
+            <div
+              aria-hidden
+              className={cn(
+                'absolute inset-0 rounded-full bg-gradient-to-b from-plum-500/35 via-plum-800/20 to-plum-950/40 ring-1 ring-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]',
                 (micOn || snapshot.receivingAudio) && 'animate-breathe',
               )}
             />
-            <div aria-hidden className="absolute inset-6 rounded-full bg-plum-900/80 ring-1 ring-white/5" />
+            <div aria-hidden className="absolute inset-5 rounded-full bg-plum-950/70 ring-1 ring-white/[0.07]" />
             <div className="relative flex flex-col items-center gap-3">
               <Waveform
                 tone="dark"
@@ -384,7 +394,7 @@ export function RoomPage() {
 
         {/* Participants (desktop) */}
         <aside className="hidden lg:block" aria-label="Participants">
-          <div className="sticky top-6 rounded-3xl bg-white/[0.04] p-5 ring-1 ring-white/10">
+          <div className="sticky top-24 rounded-3xl bg-white/[0.05] p-5 ring-1 ring-white/10 backdrop-blur-sm">
             <PeopleHeader count={connected ? participants.length : null} />
             {isHost && <HostModeSwitch sessionId={sessionId} mode={session.mode} />}
             <div className="mt-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -402,7 +412,7 @@ export function RoomPage() {
       </div>
 
       {/* Controls */}
-      <nav aria-label="Prayer room controls" className="sticky bottom-0 z-10 border-t border-white/10 bg-plum-950/90 backdrop-blur">
+      <nav aria-label="Prayer room controls" className="sticky bottom-0 z-10 border-t border-white/[0.08] bg-plum-950/80 backdrop-blur-xl">
         <div className="mx-auto grid max-w-md grid-cols-3 items-end px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <SideControl label="Audio" onClick={() => setShowSettings(true)}>
             <Settings2 className="size-6" aria-hidden />
@@ -534,7 +544,8 @@ function RoomShell({ children }: { children: ReactNode }) {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(ellipse_at_top,rgb(117_82_176/0.45),transparent_65%)]"
       />
-      <div aria-hidden className="pointer-events-none absolute top-40 left-1/2 size-96 -translate-x-1/2 rounded-full bg-brand-400/[0.07] blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute top-32 left-1/2 size-[28rem] -translate-x-1/2 rounded-full bg-brand-400/[0.08] blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute bottom-0 inset-x-0 h-64 bg-gradient-to-t from-plum-950 to-transparent" />
       <div className="relative flex flex-1 flex-col">{children}</div>
     </div>
   )
@@ -571,7 +582,7 @@ function RoomNotice({
       role={tone === 'danger' ? 'alert' : 'status'}
       className={cn(
         'flex gap-3 rounded-2xl px-4 py-3.5 ring-1',
-        tone === 'calm' ? 'bg-white/[0.06] ring-white/10' : 'bg-danger/15 ring-danger/30',
+        tone === 'calm' ? 'bg-white/[0.07] ring-white/10 backdrop-blur-sm' : 'bg-danger/15 ring-danger/30 backdrop-blur-sm',
       )}
     >
       <span className={cn('mt-0.5 shrink-0 [&_svg]:size-5', tone === 'calm' ? 'text-brand-300' : 'text-[#ffb4ae]')}>{icon}</span>

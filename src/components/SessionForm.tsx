@@ -128,7 +128,7 @@ export function SessionForm({ id, initial, isNew, onSubmit }: SessionFormProps) 
 export function ModePicker({ value, onChange }: { value: SessionMode; onChange: (mode: SessionMode) => void }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-sm font-semibold text-ink-700">Session mode</legend>
+      <legend className="mb-3 text-[0.8125rem] font-medium text-ink-700">Session format</legend>
       <div className="grid gap-3 sm:grid-cols-2">
         {(['broadcast', 'interactive'] as const).map((mode) => {
           const Icon = mode === 'broadcast' ? Radio : UsersRound
@@ -137,8 +137,8 @@ export function ModePicker({ value, onChange }: { value: SessionMode; onChange: 
             <label
               key={mode}
               className={cn(
-                'flex cursor-pointer gap-3 rounded-2xl border p-4 transition-colors has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-plum-100',
-                selected ? 'border-plum-400 bg-plum-50' : 'border-cream-200 bg-white hover:border-plum-200',
+                'flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-ink-900/[0.06]',
+                selected ? 'border-ink-900 bg-white' : 'border-ink-900/12 bg-white/50 hover:border-ink-900/30',
               )}
             >
               <input
@@ -149,9 +149,9 @@ export function ModePicker({ value, onChange }: { value: SessionMode; onChange: 
                 onChange={() => onChange(mode)}
                 className="sr-only"
               />
-              <Icon className={cn('mt-0.5 size-5 shrink-0', selected ? 'text-plum-700' : 'text-ink-400')} aria-hidden />
+              <Icon className={cn('mt-0.5 size-5 shrink-0 stroke-[1.5]', selected ? 'text-ink-900' : 'text-ink-400')} aria-hidden />
               <span>
-                <span className="block font-semibold text-ink-900">{modeLabel(mode)}</span>
+                <span className="block font-medium text-ink-900">{modeLabel(mode)}</span>
                 <span className="mt-0.5 block text-sm text-ink-500">{modeDescription(mode)}</span>
               </span>
             </label>

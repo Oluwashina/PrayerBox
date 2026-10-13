@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
-import { ArrowLeft, CalendarClock, Headphones, HeartHandshake, Info, Mic, SearchX, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Headphones, HeartHandshake, Mic, SearchX, ShieldCheck } from 'lucide-react'
+import { modeLabel } from '@/domain/session'
 import { useAuth } from '@/hooks/useAuth'
 import { useGuestName } from '@/hooks/useGuestName'
 import { useNow } from '@/hooks/useNow'
 import { useSession } from '@/hooks/useSessions'
-import { formatRelativeStart } from '@/lib/format'
-import { PrayerFocus, SessionMeta } from '@/components/SessionMeta'
+import { formatDay, formatDuration, formatRelativeStart, formatTime } from '@/lib/format'
+import { DetailList } from '@/components/layout/PageChrome'
 import { ShareSession } from '@/components/ShareSession'
-import { StatusBadge } from '@/components/ui/Badge'
+import { LiveDot, StatusBadge } from '@/components/ui/Badge'
 import { Button, ButtonLink } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { Field, Input } from '@/components/ui/Field'
 import { EmptyState, ErrorState, InlineAlert, Skeleton } from '@/components/ui/States'
 
@@ -28,32 +28,38 @@ export function JoinPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl pt-6">
-        <Skeleton className="h-[28rem] rounded-[2rem]" />
+      <div className="grid gap-12 pt-14 lg:grid-cols-[1fr_420px]">
+        <div>
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="mt-6 h-20 w-4/5" />
+          <Skeleton className="mt-6 h-5 w-2/3" />
+        </div>
+        <Skeleton className="h-96 rounded-[1.5rem]" />
       </div>
     )
   }
   if (error) {
     return (
-      <div className="mx-auto max-w-2xl pt-6">
+      <div className="mx-auto max-w-xl pt-16">
         <ErrorState title="We could not load this prayer session" body={error} onRetry={reload} />
       </div>
     )
   }
   if (notFound || !session) {
     return (
-      <div className="mx-auto max-w-2xl pt-6">
+      <div className="mx-auto max-w-xl pt-16">
         <EmptyState
-          icon={<SearchX className="size-8" />}
-          title="We could not find this prayer session"
+          icon={<SearchX />}
+          title="We could not find this session"
           body="The link may be incomplete or the session may have been removed. Ask the person who shared it for a new link."
-          action={<ButtonLink to="/">See current sessions</ButtonLink>}
+          action={<ButtonLink to="/sessions">See the schedule</ButtonLink>}
         />
       </div>
     )
   }
 
   const isLive = session.status === 'live'
+  const isOpen = isLive || session.status === 'scheduled'
 
   const join = (e: FormEvent) => {
     e.preventDefault()
@@ -67,123 +73,158 @@ export function JoinPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl pt-2 sm:pt-6">
-      <ButtonLink to="/" variant="ghost" size="sm" className="-ml-3 mb-4">
-        <ArrowLeft className="size-4" aria-hidden /> All prayer sessions
+    <div className="pt-8 sm:pt-12">
+      <ButtonLink to="/sessions" variant="ghost" size="sm" className="-ml-3">
+        <ArrowLeft className="size-4" aria-hidden /> Schedule
       </ButtonLink>
 
-      <Card className="overflow-hidden rounded-[2rem]">
-        <div className="bg-cream-100/60 p-6 sm:p-9">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_420px] lg:gap-20">
+        {/* Details */}
+        <article className="animate-fade-up">
+          <div className="flex flex-wrap items-center gap-3">
             <StatusBadge status={session.status} />
             {session.status === 'scheduled' && (
-              <span className="text-sm font-medium text-ink-500">{formatRelativeStart(session.scheduledStart, now)}</span>
+              <span className="text-[0.8125rem] text-ink-500">{formatRelativeStart(session.scheduledStart, now)}</span>
             )}
           </div>
-          <h1 className="mt-4 text-3xl leading-tight font-medium sm:text-4xl">{session.title}</h1>
-          <div className="mt-3">
-            <PrayerFocus focus={session.prayerFocus} />
+          <h1 className="mt-6 text-[3rem] leading-[0.98] text-ink-900 sm:text-[4.5rem]">{session.title}</h1>
+          <p className="mt-6 max-w-xl font-serif text-[1.6rem] leading-snug text-ink-700 italic">
+            For {session.prayerFocus.charAt(0).toLowerCase() + session.prayerFocus.slice(1)}.
+          </p>
+          {session.description && (
+            <p className="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-ink-500">{session.description}</p>
+          )}
+
+          <DetailList
+            className="mt-12 max-w-xl"
+            items={[
+              { label: 'Date', value: formatDay(session.scheduledStart) },
+              { label: 'Time', value: formatTime(session.scheduledStart) },
+              { label: 'Duration', value: formatDuration(session.durationMinutes) },
+              { label: 'Format', value: modeLabel(session.mode) },
+              { label: 'Led by', value: session.hostName },
+              { label: 'Open to', value: 'Everyone' },
+            ]}
+          />
+        </article>
+
+        {/* Join panel */}
+        <aside className="lg:pt-2">
+          <div className="lg:sticky lg:top-28">
+            <div className="overflow-hidden rounded-[1.5rem] border border-ink-900/[0.08] bg-white shadow-lift">
+              <div className="flex items-center justify-between border-b border-ink-900/[0.08] px-6 py-4 sm:px-8">
+                {isLive ? (
+                  <span className="eyebrow inline-flex items-center gap-2.5 text-ink-900">
+                    <LiveDot /> In session now
+                  </span>
+                ) : isOpen ? (
+                  <span className="eyebrow text-ink-500">Room opens at {formatTime(session.scheduledStart)}</span>
+                ) : (
+                  <span className="eyebrow text-ink-500">{session.status === 'ended' ? 'Concluded' : 'Cancelled'}</span>
+                )}
+                <Headphones className="size-4 text-ink-400" aria-hidden />
+              </div>
+
+              <div className="p-6 sm:p-8">
+                {justLeft && isLive && (
+                  <InlineAlert tone="info" icon={<HeartHandshake />} className="mb-6" title="You left the prayer room">
+                    You can rejoin at any time while the session is live.
+                  </InlineAlert>
+                )}
+
+                {session.status === 'ended' && (
+                  <div>
+                    <p className="font-serif text-[2rem] leading-tight">Amen. This prayer has ended.</p>
+                    <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink-500">
+                      Thank you for praying with us. See what is coming up next.
+                    </p>
+                    <ButtonLink to="/sessions" className="mt-6" fullWidth>
+                      Upcoming sessions
+                    </ButtonLink>
+                  </div>
+                )}
+
+                {session.status === 'cancelled' && (
+                  <div>
+                    <p className="font-serif text-[2rem] leading-tight">This session was cancelled.</p>
+                    <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink-500">
+                      We are sorry for any inconvenience. Please join us at another time of prayer.
+                    </p>
+                    <ButtonLink to="/sessions" className="mt-6" fullWidth>
+                      See other sessions
+                    </ButtonLink>
+                  </div>
+                )}
+
+                {isOpen && (
+                  <form onSubmit={join} noValidate className="flex flex-col gap-5">
+                    <p className="font-serif text-[2rem] leading-tight">{isLive ? 'Join the prayer' : 'Get ready to pray'}</p>
+                    {host ? (
+                      <InlineAlert tone="info" icon={<ShieldCheck />} title={`Joining as host · ${host.name}`}>
+                        You can speak and manage participants in the room.
+                      </InlineAlert>
+                    ) : (
+                      <Field label="Your name" error={nameError} hint="Only your name is needed. No account or app.">
+                        {(p) => (
+                          <Input
+                            {...p}
+                            value={name}
+                            onChange={(e) => {
+                              setName(e.target.value)
+                              setNameError(undefined)
+                            }}
+                            placeholder="e.g. Mary"
+                            autoComplete="given-name"
+                            enterKeyHint="go"
+                            maxLength={40}
+                          />
+                        )}
+                      </Field>
+                    )}
+
+                    {isLive ? (
+                      <Button type="submit" size="lg" variant="primary" fullWidth>
+                        Enter the prayer room <ArrowRight className="size-4" aria-hidden />
+                      </Button>
+                    ) : (
+                      <div>
+                        <Button type="button" size="lg" variant="secondary" fullWidth disabled>
+                          Opens when the host begins
+                        </Button>
+                        <p className="mt-3 text-center text-[0.8125rem] text-ink-500">
+                          Keep this page open — it updates the moment prayer starts.
+                        </p>
+                      </div>
+                    )}
+
+                    <ul className="mt-1 flex flex-col gap-3 border-t border-ink-900/[0.08] pt-5 text-[0.8125rem] leading-relaxed text-ink-500">
+                      <li className="flex gap-3">
+                        <Mic className="mt-0.5 size-4 shrink-0 text-ink-400" aria-hidden />
+                        {host
+                          ? 'Your browser will ask to use your microphone when you unmute.'
+                          : session.mode === 'interactive'
+                            ? 'You join with your microphone off. If the host invites you to pray aloud, your browser will ask first.'
+                            : 'You join as a listener. Your microphone is never used.'}
+                      </li>
+                      <li className="flex gap-3">
+                        <Headphones className="mt-0.5 size-4 shrink-0 text-ink-400" aria-hidden />
+                        Headphones help avoid echo for everyone.
+                      </li>
+                    </ul>
+                  </form>
+                )}
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className="mt-8">
+                <p className="eyebrow text-ink-500">Invite someone to pray</p>
+                <ShareSession session={session} layout="stack" className="mt-4" />
+              </div>
+            )}
           </div>
-          {session.description && <p className="mt-4 leading-relaxed text-ink-700">{session.description}</p>}
-          <SessionMeta session={session} className="mt-5" />
-          <p className="mt-3 text-sm text-ink-500">Led by {session.hostName}</p>
-        </div>
-
-        <div className="p-6 sm:p-9">
-          {justLeft && isLive && (
-            <InlineAlert tone="info" icon={<HeartHandshake />} className="mb-6" title="You left the prayer room">
-              You can rejoin at any time while the session is live.
-            </InlineAlert>
-          )}
-
-          {session.status === 'ended' && (
-            <EmptyState
-              icon={<HeartHandshake className="size-8" />}
-              title="This prayer session has ended"
-              body="Thank you for praying with us. See what is coming up next."
-              action={<ButtonLink to="/sessions">Upcoming sessions</ButtonLink>}
-            />
-          )}
-
-          {session.status === 'cancelled' && (
-            <EmptyState
-              icon={<CalendarClock className="size-8" />}
-              title="This session was cancelled"
-              body="We are sorry for any inconvenience. Please join us at another time of prayer."
-              action={<ButtonLink to="/sessions">See other sessions</ButtonLink>}
-            />
-          )}
-
-          {(isLive || session.status === 'scheduled') && (
-            <form onSubmit={join} noValidate className="flex flex-col gap-5">
-              {host ? (
-                <InlineAlert tone="info" icon={<ShieldCheck />} title={`Joining as host: ${host.name}`}>
-                  You can speak and manage participants in the room.
-                </InlineAlert>
-              ) : (
-                <Field
-                  label="Your name"
-                  error={nameError}
-                  hint="Only your name is needed. No account or app required."
-                >
-                  {(p) => (
-                    <Input
-                      {...p}
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value)
-                        setNameError(undefined)
-                      }}
-                      placeholder="e.g. Mary"
-                      autoComplete="given-name"
-                      enterKeyHint="go"
-                      maxLength={40}
-                    />
-                  )}
-                </Field>
-              )}
-
-              {session.mode === 'interactive' && !host && (
-                <InlineAlert tone="info" icon={<Mic />} title="About your microphone">
-                  You will join as a listener with your microphone off. If the host invites you to pray aloud, your
-                  browser will ask permission to use your microphone. You can say no and keep listening.
-                </InlineAlert>
-              )}
-              {host && (
-                <InlineAlert tone="info" icon={<Mic />} title="Microphone permission">
-                  Your browser will ask to use your microphone when you unmute.
-                </InlineAlert>
-              )}
-
-              {isLive ? (
-                <Button type="submit" size="lg" variant="primary" fullWidth icon={<Headphones className="size-5" />}>
-                  Join Prayer Room
-                </Button>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  <Button type="button" size="lg" variant="secondary" fullWidth disabled>
-                    The room opens when the host begins
-                  </Button>
-                  <p className="flex items-center justify-center gap-1.5 text-center text-sm text-ink-500">
-                    <Info className="size-4" aria-hidden /> Keep this page open. It will update when prayer starts.
-                  </p>
-                </div>
-              )}
-
-              <p className="text-center text-sm text-ink-500">Tip: headphones help avoid echo for everyone.</p>
-            </form>
-          )}
-        </div>
-      </Card>
-
-      {(isLive || session.status === 'scheduled') && (
-        <section className="mt-8" aria-labelledby="invite">
-          <h2 id="invite" className="text-xl font-medium">
-            Invite someone to pray
-          </h2>
-          <ShareSession session={session} className="mt-4" />
-        </section>
-      )}
+        </aside>
+      </div>
     </div>
   )
 }

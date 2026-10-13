@@ -5,12 +5,12 @@ import { cn } from '@/lib/cn'
 type Tone = 'neutral' | 'plum' | 'live' | 'ok' | 'warn' | 'danger' | 'brand'
 
 const tones: Record<Tone, string> = {
-  neutral: 'bg-cream-100 text-ink-700',
-  plum: 'bg-plum-50 text-plum-800',
+  neutral: 'border border-ink-900/12 text-ink-500',
+  plum: 'border border-plum-200 text-plum-700',
   live: 'bg-live-soft text-live',
   ok: 'bg-ok-soft text-ok',
   warn: 'bg-warn-soft text-warn',
-  danger: 'bg-danger-soft text-danger',
+  danger: 'border border-danger/25 text-danger',
   brand: 'bg-brand-100 text-ink-900',
 }
 
@@ -18,7 +18,7 @@ export function Badge({ tone = 'neutral', children, className }: { tone?: Tone; 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-[0.3rem] text-[0.65rem] leading-none font-semibold tracking-[0.14em] uppercase',
         tones[tone],
         className,
       )}
@@ -37,7 +37,7 @@ export function StatusBadge({ status, className }: { status: SessionStatus; clas
     case 'live':
       return (
         <Badge tone="live" className={className}>
-          <LiveDot /> LIVE NOW
+          <LiveDot className="size-1.5" /> Live
         </Badge>
       )
     case 'scheduled':

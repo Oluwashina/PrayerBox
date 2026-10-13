@@ -1,55 +1,81 @@
-import { CalendarDays, History } from 'lucide-react'
+import type { PrayerSession } from '@/domain/types'
 import { groupSessions } from '@/domain/session'
 import { useSessions } from '@/hooks/useSessions'
+import { LiveSessionCard } from '@/components/LiveSessionCard'
 import { SessionCard } from '@/components/SessionCard'
+import { PageIntro, SectionHeader } from '@/components/layout/PageChrome'
 import { EmptyState, ErrorState, SessionCardSkeleton } from '@/components/ui/States'
+
+const monthFmt = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' })
+
+function byMonth(sessions: PrayerSession[]) {
+  const groups = new Map<string, PrayerSession[]>()
+  for (const s of sessions) {
+    const key = monthFmt.format(new Date(s.scheduledStart))
+    groups.set(key, [...(groups.get(key) ?? []), s])
+  }
+  return [...groups.entries()]
+}
 
 export function SessionsPage() {
   const { sessions, loading, error, reload } = useSessions()
   const { live, upcoming, past } = groupSessions(sessions)
 
   return (
-    <div className="pt-6 sm:pt-10">
-      <h1 className="text-4xl font-medium sm:text-5xl">Prayer sessions</h1>
-      <p className="mt-3 text-ink-500">Upcoming times to pray together, and sessions from the past few weeks.</p>
+    <div>
+      <PageIntro
+        eyebrow="Schedule"
+        title={
+          <>
+            Times of <em className="text-plum-600">prayer</em>
+          </>
+        }
+        description="Join live, or plan ahead for the next gathering. Every session is open to all — just bring your name."
+      />
 
       {error ? (
-        <ErrorState className="mt-10" title="We could not load prayer sessions" body={error} onRetry={reload} />
+        <ErrorState title="We could not load prayer sessions" body={error} onRetry={reload} />
       ) : (
-        <div className="mt-10 flex flex-col gap-12">
-          {(loading || live.length > 0 || upcoming.length > 0) && (
-            <section aria-labelledby="upcoming">
-              <h2 id="upcoming" className="text-2xl font-medium">
-                Live and upcoming
-              </h2>
-              <div className="mt-4 flex flex-col gap-3">
-                {loading ? (
-                  <>
-                    <SessionCardSkeleton />
-                    <SessionCardSkeleton />
-                    <SessionCardSkeleton />
-                  </>
-                ) : (
-                  [...live, ...upcoming].map((s) => <SessionCard key={s.id} session={s} />)
-                )}
-              </div>
+        <div className="flex flex-col gap-20">
+          {live.length > 0 && (
+            <section aria-label="Live now" className="grid gap-4 lg:grid-cols-2">
+              {live.map((s) => (
+                <LiveSessionCard key={s.id} session={s} />
+              ))}
             </section>
           )}
-          {!loading && live.length === 0 && upcoming.length === 0 && (
-            <EmptyState icon={<CalendarDays className="size-8" />} title="Nothing scheduled yet" body="Check back soon." />
-          )}
 
-          {!loading && (
-            <section aria-labelledby="previous">
-              <h2 id="previous" className="text-2xl font-medium">
-                Previous sessions
-              </h2>
-              <div className="mt-4 flex flex-col gap-3">
-                {past.length === 0 ? (
-                  <EmptyState icon={<History className="size-8" />} title="No previous sessions yet" />
-                ) : (
-                  past.map((s) => <SessionCard key={s.id} session={s} />)
-                )}
+          <section aria-labelledby="upcoming-sessions">
+            <SectionHeader index="01" eyebrow="Upcoming" id="upcoming-sessions" title="On the calendar" />
+            <div className="mt-6">
+              {loading ? (
+                <>
+                  <SessionCardSkeleton />
+                  <SessionCardSkeleton />
+                  <SessionCardSkeleton />
+                </>
+              ) : upcoming.length === 0 ? (
+                <EmptyState title="Nothing scheduled yet" body="Check back soon for the next time of prayer." />
+              ) : (
+                byMonth(upcoming).map(([month, items]) => (
+                  <div key={month} className="mt-4 first:mt-0">
+                    <p className="eyebrow pt-6 text-brand-600">{month}</p>
+                    {items.map((s) => (
+                      <SessionCard key={s.id} session={s} />
+                    ))}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          {!loading && past.length > 0 && (
+            <section aria-labelledby="previous-sessions">
+              <SectionHeader index="02" eyebrow="Archive" id="previous-sessions" title="Recent sessions" />
+              <div className="mt-6">
+                {past.map((s) => (
+                  <SessionCard key={s.id} session={s} />
+                ))}
               </div>
             </section>
           )}
